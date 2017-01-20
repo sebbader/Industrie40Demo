@@ -1,0 +1,100 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix http: <http://www.w3.org/2011/http#> . 
+@prefix httpm: <http://www.w3.org/2011/http-methods#> . 
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix dbpedia: <http://dbpedia.org/resource/> .
+@prefix dbo: <http://dbpedia.org/ontology/> .
+
+
+{
+# Anweisung: Hole dir eine Tour aus Visitour 
+  [] http:mthd httpm:GET ; 
+     http:requestURI <http://localhost:9080/stepwrapper/fls/visitour/tour33> .
+}
+{
+# Anweisung: Hole dir eine Tour aus Visitour 
+  [] http:mthd httpm:GET ; 
+     http:requestURI <http://localhost:9080/stepwrapper/fls/visitour/tour16> .
+}
+{
+# Anweisung: Hole dir eine Tour aus Visitour 
+  [] http:mthd httpm:GET ; 
+     http:requestURI <http://localhost:9080/stepwrapper/fls/visitour/tour19> .
+}
+{
+# Anweisung: Hole dir eine Tour aus Visitour 
+  [] http:mthd httpm:GET ; 
+     http:requestURI <http://localhost:9080/stepwrapper/fls/visitour/tour32> .
+}
+
+
+{
+# Bedingung: Wenn eine Tour einen Kunden hat, und diesem Koordinaten zugeordnet wurden...
+	?x <http://example.org/hasCustomer> ?y .
+	?y  <http://gm/#lat> ?lat . 
+	?y	<http://gm/#lng> ?lng .
+	?x <http://example.org/hasCity> ?city .
+}
+=>
+{
+# Implikation: ...dann sende diese als neue Region an Bluemix Geospatial Service zur Überwachung
+  [] http:mthd httpm:PUT ; 
+     http:requestURI <http://localhost:9080/BluemixGeospatialWrapper/geospatialanalytics/addregion> ;
+	 http:body {
+		<http://example.org/tour> <http://gm/#lat> ?lat ;
+			<http://gm/#lng> ?lng ;
+			<http://example.org/hasCity> ?city .
+		
+	 } .
+	 
+}
+.
+
+
+{
+# Anweisung: Hole dir eine Tour aus Visitour 
+  [] http:mthd httpm:GET ; 
+     http:requestURI <http://localhost:9080/BluemixGeospatialWrapper/Device1/currentgps> .
+}
+
+{
+# Bedingung: Wenn eine Tour einen Kunden hat, und diesem Koordinaten zugeordnet wurden...
+	?x a <http://example.org/Device> ;
+		<http://gm/#lat> ?lat ; 
+		<http://gm/#lng> ?lng ;
+		<http://example.org/inRegion> "true" .
+}
+=>
+{
+# Implikation: ...dann sende diese Daten an die MAREST Ressource
+  [] http:mthd httpm:PUT ; 
+     http:requestURI <http://127.0.0.1:8080/rs/panorama> ;
+	 http:body {
+		<>
+			<http://gm/#position> _:a ;
+			<http://gm/#pov> _:b ;
+			<http://gm/#zoom> "0.5391588111080314" ;
+    		a <http://gm/#Panorama> .	
+
+		_:a <http://gm/#lat> ?lat ;
+			<http://gm/#lng> ?lng ;
+        	a <http://gm/#LatLng> .	
+
+		_:b <http://gm/#heading> "-90" ;
+       	 	<http://gm/#pitch> "10" ;
+        	a <http://gm/#Pov> ;
+	
+		<http://127.0.0.1:13337/rs/view>
+    		<http://marest/#consoleView> "true" ;
+    		<http://marest/#mapSync> "true" ;
+    		<http://marest/#mapView> "true" ;
+    		<http://marest/#panoramaView> "true" ;
+    		a <http://marest/#View> .
+		
+	 } .
+}
+.
+
+
